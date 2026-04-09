@@ -1,0 +1,33 @@
+import streamlit as st
+import google.generativeai as genai
+from PIL import Image
+
+# 1. AIの設定（ここに自分のAPIキーを入れる）
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+st.title("📸 AI栄養士くん")
+st.caption("写真を撮るだけでPFCを推定します")
+
+# 2. スマホのカメラを起動するボタン
+img_file = st.camera_input("料理を撮影してください")
+
+if img_file:
+    img = Image.open(img_file)
+    st.image(img, caption="解析中...", use_column_width=True)
+    
+    # 3. AIへの指示（プロンプト）
+    prompt = """
+    この写真の料理を分析し、以下の情報を日本語で答えてください。
+    1. 料理名
+    2. 推定総カロリー(kcal)
+    3. P（タンパク質）、F（脂質）、C（炭水化物）それぞれのグラム数
+    4. アドバイスを一言
+    """
+    
+    with st.spinner('栄養素を計算中...'):
+        response = model.generate_content([prompt, img])
+        st.write("### 栄養解析結果")
+        st.write(response.text)
+
+st.info("※この数値はAIによる推定です。正確な栄養価は食品表示を確認してください。")
